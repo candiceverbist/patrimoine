@@ -93,7 +93,7 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
   <div class="sh">TAUX & RENDEMENTS</div>
   <div class="sr"><div class="sl-lbl"><span>Placement Wealins (H&eacute;ritages/PLCI)</span><span class="sl-v" id="lbl-wPostRate" style="color:#eda100"></span></div><input type="range" min="1" max="12" step="0.5" id="sl-wPostRate" oninput="updSlider('wPostRate',this.value)" style="accent-color:#eda100"></div>
   <div class="sr"><div class="sl-lbl"><span>PLCI Branche 21</span><span class="sl-v" id="lbl-pRate" style="color:#1baf7a"></span></div><input type="range" min="1" max="10" step="0.5" id="sl-pRate" oninput="updSlider('pRate',this.value)" style="accent-color:#1baf7a"></div>
-  <div class="sr"><div class="sl-lbl"><span>Compte épargne family</span><span class="sl-v" id="lbl-parRate" style="color:#4a3aa7"></span></div><input type="range" min="0" max="5" step="0.5" id="sl-parRate" oninput="updSlider('parRate',this.value)" style="accent-color:#4a3aa7"></div>
+  <div class="sr"><div class="sl-lbl"><span>Compte épargne parents</span><span class="sl-v" id="lbl-parRate" style="color:#4a3aa7"></span></div><input type="range" min="0" max="5" step="0.5" id="sl-parRate" oninput="updSlider('parRate',this.value)" style="accent-color:#4a3aa7"></div>
   <div class="sr"><div class="sl-lbl"><span>Inflation</span><span class="sl-v" id="lbl-infl" style="color:var(--tx3)"></span></div><input type="range" min="0" max="6" step="0.1" id="sl-infl" oninput="updSlider('infl',this.value)"></div>
   <div class="sr"><div class="sl-lbl"><span>Appr&eacute;ciation immo</span><span class="sl-v" id="lbl-iRate" style="color:#2a78d6"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-iRate" oninput="updSlider('iRate',this.value)" style="accent-color:#2a78d6"></div>
   
@@ -201,9 +201,9 @@ let propOwn=[
 let p={
   pRate:2.5, plciYearly:1200, plciTax:15,
   infl:2, iRate:3, wPostRate:7,
-  herYear:2035, parRate:1.0,
+  herYear:2044, parRate:1.0,
   parCash2023:440000, netLossMonth:1000,
-  sisterPass:false, sisterYear:2040, sisterApptVal:200000, sisterApptRent:1000,
+  sisterPass:true, sisterYear:2040, sisterApptVal:200000, sisterApptRent:1000,
   pension:1400, pensionYear:2046
 };
 
@@ -271,6 +271,7 @@ function calc(){
   let plci=0, w=0;
   let io=sO().v;
   
+  // Érosion dynamique année par année du capital parental jusqu'à herYear
   const lossAnnual = p.netLossMonth * 12;
   let parCapitalGlobal = p.parCash2023;
   for(let y=2024; y<=p.herYear; y++){
@@ -287,20 +288,22 @@ function calc(){
     const inf=Math.pow(1+p.infl/100,n), rf=1/inf;
     const passif=propOwn.reduce((s,prop)=>s+pPassif(prop,y),0);
     
-    // 1. Héritage parental direct chez Wealins
+    // 1. Héritage parental direct chez Wealins l'année du décès
     if(y === p.herYear){
       w += parHerNetFinancier;
     }
 
-    // 2. Succession sœur : 50% du capital parental de la sœur placé à 1% chez Wealins + 50% de l'appartement
-    if(p.sisterPass && y === p.sisterYear && y >= p.herYear){
-      const yearsPlacedSister = Math.max(0, p.sisterYear - p.herYear);
-      const sisterParCapitalAtDeath = parHerNetFinancier * Math.pow(1 + p.parRate/100, yearsPlacedSister);
-      const sisterCashPartToCandice = sisterParCapitalAtDeath * 0.50;
-      w += sisterCashPartToCandice;
+    // 2. Succession sœur (si prédécédée avant ou après l'héritage parental)
+    if(p.sisterPass && y === p.sisterYear){
+      if(y >= p.herYear){
+        const yearsPlacedSister = Math.max(0, p.sisterYear - p.herYear);
+        const sisterParCapitalAtDeath = parHerNetFinancier * Math.pow(1 + p.parRate/100, yearsPlacedSister);
+        const sisterCashPartToCandice = sisterParCapitalAtDeath * 0.50;
+        w += sisterCashPartToCandice;
+      }
     }
 
-    // 3. Transfert PLCI nette à 67 ans
+    // 3. Transfert PLCI nette à 67 ans (pensionYear)
     if(y === p.pensionYear){
       const plciNet = plci * (1 - p.plciTax/100);
       w += plciNet;
@@ -456,7 +459,7 @@ function renderChart(){
     leg.innerHTML='<div class="li"><div class="lsq" style="background:#4a3aa7"></div>Immo sœur (50%)</div>'
       +'<div class="li"><div class="lsq" style="background:#2a78d6"></div>Immobilier propre (35%)</div>'
       +'<div class="li"><div class="lsq" style="background:#1baf7a"></div>PLCI Branche 21</div>'
-      +'<div class="li"><div class="lsq" style="background:#eda100"></div>Wealins (+ Hégitages & PLCI)</div>';
+      +'<div class="li"><div class="lsq" style="background:#eda100"></div>Wealins (+ Héritages & PLCI)</div>';
     cfg={
       type:'line',
       data:{labels:yrs,datasets:[
