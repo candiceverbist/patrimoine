@@ -91,9 +91,9 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
 <div class="body">
 <div class="side">
   <div class="sh">TAUX & RENDEMENTS</div>
-  <div class="sr"><div class="sl-lbl"><span>PLCI</span><span class="sl-v" id="lbl-pRate" style="color:#1baf7a"></span></div><input type="range" min="1" max="10" step="0.5" id="sl-pRate" oninput="updSlider('pRate',this.value)" style="accent-color:#1baf7a"></div>
-  <div class="sr"><div class="sl-lbl"><span>Placements parents</span><span class="sl-v" id="lbl-parRate" style="color:#4a3aa7"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-parRate" oninput="updSlider('parRate',this.value)" style="accent-color:#4a3aa7"></div>
   <div class="sr"><div class="sl-lbl"><span>Placement Wealins (H&eacute;ritage)</span><span class="sl-v" id="lbl-wPostRate" style="color:#eda100"></span></div><input type="range" min="1" max="12" step="0.5" id="sl-wPostRate" oninput="updSlider('wPostRate',this.value)" style="accent-color:#eda100"></div>
+  <div class="sr"><div class="sl-lbl"><span>PLCI Branche 21</span><span class="sl-v" id="lbl-pRate" style="color:#1baf7a"></span></div><input type="range" min="1" max="10" step="0.5" id="sl-pRate" oninput="updSlider('pRate',this.value)" style="accent-color:#1baf7a"></div>
+  <div class="sr"><div class="sl-lbl"><span>Placements parents</span><span class="sl-v" id="lbl-parRate" style="color:#4a3aa7"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-parRate" oninput="updSlider('parRate',this.value)" style="accent-color:#4a3aa7"></div>
   <div class="sr"><div class="sl-lbl"><span>Inflation</span><span class="sl-v" id="lbl-infl" style="color:var(--tx3)"></span></div><input type="range" min="0" max="6" step="0.1" id="sl-infl" oninput="updSlider('infl',this.value)"></div>
   <div class="sr"><div class="sl-lbl"><span>Appr&eacute;ciation immo</span><span class="sl-v" id="lbl-iRate" style="color:#2a78d6"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-iRate" oninput="updSlider('iRate',this.value)" style="accent-color:#2a78d6"></div>
   
@@ -143,9 +143,10 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
     <div class="tw"><table>
       <thead><tr>
         <th>Ann&eacute;e</th><th>&Acirc;ge</th>
+        <th style="color:#eda100">Wealins</th>
         <th style="color:#1baf7a">PLCI</th>
         <th style="color:#2a78d6">Immo net</th>
-        <th style="color:#4a3aa7">H&eacute;ritage+</th>
+        <th style="color:#4a3aa7">Immo par.</th>
         <th>Total</th><th>Revenus/mois</th>
       </tr></thead>
       <tbody id="tbl-body"></tbody>
@@ -159,7 +160,7 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
 <script>
 const BIRTH=1978, Y0=2026, Y1=2050;
 const MILESTONES = Array.from({length: Y1 - Y0 + 1}, (_, i) => Y0 + i);
-const C={p:'#1baf7a',i:'#2a78d6',h:'#4a3aa7',pen:'#eb6834'};
+const C={w:'#eda100',p:'#1baf7a',i:'#2a78d6',h:'#4a3aa7',pen:'#eb6834'};
 const MFR=['janv.',`févr.`,'mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.',`déc.`];
 
 const LD={
@@ -198,7 +199,7 @@ let propOwn=[
 ];
 
 let p={
-  pRate:2.5, plciYearly:1200, // Cotisation nette épargne ajustée (hors Revenu Garanti)
+  pRate:2.5, plciYearly:1200,
   infl:2, iRate:3, wPostRate:7,
   herYear:2035, parRate:2,
   parCash2023:440000, ehpadCost:4500, parPension:3600,
@@ -267,7 +268,7 @@ function calcTaxeSuccessionLigneDirecte(partBrute){
 
 function calc(){
   rows=[];
-  let plci=0;
+  let plci=0, w=0;
   let io=sO().v;
   
   const deficitAnnuis = (p.ehpadCost - p.parPension) * 12;
@@ -279,45 +280,42 @@ function calc(){
   const ratioHer = (p.sisterPass && p.sisterYear < p.herYear) ? 0.50 : 0.333333;
   const partCandiceBrute = parCapitalGlobal * ratioHer;
   const taxeEstim = calcTaxeSuccessionLigneDirecte(partCandiceBrute);
-  const parHerNetInitial = Math.max(0, partCandiceBrute - taxeEstim);
-
-  let accumulatedHer = 0;
+  const parHerNetFinancier = Math.max(0, partCandiceBrute - taxeEstim);
 
   for(let y=Y0;y<=Y1;y++){
     const n=y-Y0, age=y-BIRTH;
     const inf=Math.pow(1+p.infl/100,n), rf=1/inf;
     const passif=propOwn.reduce((s,prop)=>s+pPassif(prop,y),0);
     
-    // Cotisation versée uniquement jusqu'en 2034 (hors assurance pure)
+    // Transfert direct du capital net d'héritage parental dans Wealins à l'année de succession
+    if(y === p.herYear){
+      w += parHerNetFinancier;
+    }
+
     const plciContrib = (y < 2035) ? p.plciYearly : 0;
     plci = (plci + plciContrib) * (1 + p.pRate/100);
-
-    accumulatedHer *= (1 + p.wPostRate/100);
-
-    if(y === p.herYear){
-      accumulatedHer += parHerNetInitial;
-    }
 
     const nHerS = Math.max(0, y - p.sisterYear);
     const sisterApptPart = p.sisterPass && y >= p.sisterYear ? (p.sisterApptVal * 0.5) * Math.pow(1+p.iRate/100, nHerS) : 0;
     const sisterApptLoyer = p.sisterPass && y >= p.sisterYear ? (p.sisterApptRent * 0.5) * inf : 0;
 
-    const herO = accumulatedHer + sisterApptPart;
+    const ip = sisterApptPart;
     const imN = io - passif;
-    const tot = plci + imN + herO;
+    const tot = w + plci + imN + ip;
     
     const lOwn = sisterApptLoyer;
     const lPen = y >= p.pensionYear ? p.pension * inf : 0;
     const lT = lOwn + lPen;
     
     rows.push({year:y,age,
-      plci:Math.round(plci),io:Math.round(imN),ip:Math.round(herO),tot:Math.round(tot),
-      plciR:Math.round(plci*rf),ioR:Math.round(imN*rf),ipR:Math.round(herO*rf),totR:Math.round(tot*rf),
+      w:Math.round(w),plci:Math.round(plci),io:Math.round(imN),ip:Math.round(ip),tot:Math.round(tot),
+      wR:Math.round(w*rf),plciR:Math.round(plci*rf),ioR:Math.round(imN*rf),ipR:Math.round(ip*rf),totR:Math.round(tot*rf),
       lOwn:Math.round(lOwn),lPen:Math.round(lPen),
       lOwnR:Math.round(lOwn*rf),lPenR:Math.round(lPen*rf),
       lm:Math.round(lT),lmR:Math.round(lT*rf),
     });
 
+    w *= (1 + p.wPostRate/100);
     io *= (1 + p.iRate/100);
   }
 }
@@ -355,6 +353,7 @@ function updateTable(){
     const tr=document.createElement('tr'); if(isPensionYear) tr.className='hl';
     tr.innerHTML=`<td style="font-weight:${isPensionYear||isLoanEnd||isHerYear||isSisterYear?600:400}">${y}${mk}</td>`
       +`<td style="color:var(--tx3)">${d.age}</td>`
+      +`<td style="color:#eda100">${fmt(vk(d,'w'),false)}</td>`
       +`<td style="color:#1baf7a">${fmt(vk(d,'plci'),false)}</td>`
       +`<td style="color:#2a78d6">${fmt(vk(d,'io'),false)}</td>`
       +`<td style="color:#4a3aa7">${fmt(vk(d,'ip'),false)}</td>`
@@ -438,15 +437,17 @@ function renderChart(){
     };
 
   } else if(tab==='breakdown'){
-    leg.innerHTML='<div class="li"><div class="lsq" style="background:#4a3aa7"></div>Héritage &amp; Sœur</div>'
-      +'<div class="li"><div class="lsq" style="background:#2a78d6"></div>Immobilier (35%)</div>'
-      +'<div class="li"><div class="lsq" style="background:#1baf7a"></div>PLCI</div>';
+    leg.innerHTML='<div class="li"><div class="lsq" style="background:#4a3aa7"></div>Immo sœur/tante</div>'
+      +'<div class="li"><div class="lsq" style="background:#2a78d6"></div>Immobilier propre (35%)</div>'
+      +'<div class="li"><div class="lsq" style="background:#1baf7a"></div>PLCI Branche 21</div>'
+      +'<div class="li"><div class="lsq" style="background:#eda100"></div>Wealins (Héritage cash)</div>';
     cfg={
       type:'line',
       data:{labels:yrs,datasets:[
-        {label:'Héritage & Sœur',data:rows.map(r=>vk(r,'ip')),borderColor:C.h,backgroundColor:C.h+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
-        {label:'Immobilier (35%)',data:rows.map(r=>vk(r,'io')),borderColor:C.i,backgroundColor:C.i+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
-        {label:'PLCI',data:rows.map(r=>vk(r,'plci')),borderColor:C.p,backgroundColor:C.p+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
+        {label:'Immo sœur/tante',data:rows.map(r=>vk(r,'ip')),borderColor:C.h,backgroundColor:C.h+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
+        {label:'Immobilier propre (35%)',data:rows.map(r=>vk(r,'io')),borderColor:C.i,backgroundColor:C.i+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
+        {label:'PLCI Branche 21',data:rows.map(r=>vk(r,'plci')),borderColor:C.p,backgroundColor:C.p+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
+        {label:'Wealins (Héritage cash)',data:rows.map(r=>vk(r,'w')),borderColor:C.w,backgroundColor:C.w+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
       ]},
       options:baseOpts,
       plugins:[refPlugin]
