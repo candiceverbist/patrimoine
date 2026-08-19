@@ -101,7 +101,7 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
   <div id="props-own"></div>
   
   <div class="sh">EPARGNE RETRAITE (PLCI)</div>
-  <div class="fi"><label>Cotisation annuelle épargne (&euro;/an jusqu'en 2034)</label><input type="number" id="f-plciYearly" oninput="updField('plciYearly',this.value)"></div>
+  <div class="fi"><label>Cotisation annuelle épargne (&euro;/an jusqu'en 2035)</label><input type="number" id="f-plciYearly" oninput="updField('plciYearly',this.value)"></div>
   
   <div class="sh">H&Eacute;RITAGE PARENTAL</div>
   <div class="fi"><label>Ann&eacute;e h&eacute;ritage</label><input type="number" id="f-herYear" oninput="updField('herYear',this.value)"></div>
@@ -124,9 +124,9 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
 
 <div class="main">
   <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-lbl">2030 &mdash; 52 ans</div><div class="kpi-val" id="kpi-2030" style="color:var(--tx2)">—</div><div class="kpi-sub" id="kpi-2030-l">—</div></div>
-    <div class="kpi-card"><div class="kpi-lbl">2034 &mdash; 56 ans</div><div class="kpi-val" id="kpi-2034" style="color:var(--tx2)">—</div><div class="kpi-sub" id="kpi-2034-l">—</div></div>
-    <div class="kpi-card" style="border-color:var(--acc)"><div class="kpi-lbl">&#127937; Pension &mdash; 68 ans</div><div class="kpi-val" id="kpi-2046" style="color:var(--acc)">—</div><div class="kpi-sub" id="kpi-2046-l">—</div></div>
+    <div class="kpi-card"><div class="kpi-lbl">2030 &mdash; 51 ans</div><div class="kpi-val" id="kpi-2030" style="color:var(--tx2)">—</div><div class="kpi-sub" id="kpi-2030-l">—</div></div>
+    <div class="kpi-card"><div class="kpi-lbl">2035 &mdash; 56 ans</div><div class="kpi-val" id="kpi-2035" style="color:var(--tx2)">—</div><div class="kpi-sub" id="kpi-2035-l">—</div></div>
+    <div class="kpi-card" style="border-color:var(--acc)"><div class="kpi-lbl">&#127937; Pension &mdash; 67 ans</div><div class="kpi-val" id="kpi-2046" style="color:var(--acc)">—</div><div class="kpi-sub" id="kpi-2046-l">—</div></div>
   </div>
   <div class="tabs">
     <button class="tbtn active" id="tab-total" onclick="setTab('total')">Patrimoine total</button>
@@ -157,7 +157,7 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-const BIRTH=1978, Y0=2026, Y1=2050;
+const BIRTH=1979, Y0=2026, Y1=2050;
 const MILESTONES = Array.from({length: Y1 - Y0 + 1}, (_, i) => Y0 + i);
 const C={w:'#eda100',p:'#1baf7a',i:'#2a78d6',h:'#4a3aa7',pen:'#eb6834'};
 const MFR=['janv.',`févr.`,'mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.',`déc.`];
@@ -200,8 +200,8 @@ let propOwn=[
 let p={
   pRate:2.5, plciYearly:1200,
   infl:2, iRate:3, wPostRate:7,
-  herYear:2035, parRate:1.0, // Compte épargne sous administration à 1.0%
-  parCash2023:440000, netLossMonth:1000, // Pertes nettes arrondies à 1 000€/mois
+  herYear:2035, parRate:1.0,
+  parCash2023:440000, netLossMonth:1000,
   sisterPass:false, sisterYear:2040, sisterApptVal:200000, sisterApptRent:1000,
   pension:1400, pensionYear:2046
 };
@@ -270,7 +270,6 @@ function calc(){
   let plci=0, w=0;
   let io=sO().v;
   
-  // Érosion du compte épargne (1.0% rendement, 12 000€/an de perte)
   const lossAnnual = p.netLossMonth * 12;
   let parCapitalGlobal = p.parCash2023;
   for(let y=2024; y<=p.herYear; y++){
@@ -291,7 +290,7 @@ function calc(){
       w += parHerNetFinancier;
     }
 
-    const plciContrib = (y < 2035) ? p.plciYearly : 0;
+    const plciContrib = (y <= 2035) ? p.plciYearly : 0;
     plci = (plci + plciContrib) * (1 + p.pRate/100);
 
     const nHerS = Math.max(0, y - p.sisterYear);
@@ -324,7 +323,7 @@ function find(y){return rows.find(r=>r.year===y);}
 const isDark=()=>window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
 
 function updateKPIs(){
-  [[2030,'kpi-2030'],[2034,'kpi-2034'],[2046,'kpi-2046']].forEach(([y,id])=>{
+  [[2030,'kpi-2030'],[2035,'kpi-2035'],[2046,'kpi-2046']].forEach(([y,id])=>{
     const d=find(y);
     if(d){
       document.getElementById(id).textContent=fmt(vk(d,'tot'));
