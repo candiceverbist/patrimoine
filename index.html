@@ -93,6 +93,7 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
   <div class="sh">TAUX & RENDEMENTS</div>
   <div class="sr"><div class="sl-lbl"><span>PLCI</span><span class="sl-v" id="lbl-pRate" style="color:#1baf7a"></span></div><input type="range" min="1" max="10" step="0.5" id="sl-pRate" oninput="updSlider('pRate',this.value)" style="accent-color:#1baf7a"></div>
   <div class="sr"><div class="sl-lbl"><span>Placements parents</span><span class="sl-v" id="lbl-parRate" style="color:#4a3aa7"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-parRate" oninput="updSlider('parRate',this.value)" style="accent-color:#4a3aa7"></div>
+  <div class="sr"><div class="sl-lbl"><span>Placement Wealins (H&eacute;ritage)</span><span class="sl-v" id="lbl-wPostRate" style="color:#eda100"></span></div><input type="range" min="1" max="12" step="0.5" id="sl-wPostRate" oninput="updSlider('wPostRate',this.value)" style="accent-color:#eda100"></div>
   <div class="sr"><div class="sl-lbl"><span>Inflation</span><span class="sl-v" id="lbl-infl" style="color:var(--tx3)"></span></div><input type="range" min="0" max="6" step="0.1" id="sl-infl" oninput="updSlider('infl',this.value)"></div>
   <div class="sr"><div class="sl-lbl"><span>Appr&eacute;ciation immo</span><span class="sl-v" id="lbl-iRate" style="color:#2a78d6"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-iRate" oninput="updSlider('iRate',this.value)" style="accent-color:#2a78d6"></div>
   
@@ -111,9 +112,9 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
   <div class="sh">SUCCESSION S&#338;UR (FIDEICOMMIS)</div>
   <div class="check-row">
     <input type="checkbox" id="chk-sisterPass" onchange="updCheck('sisterPass',this.checked)">
-    <label for="chk-sisterPass">Activer la succession s&#338;ur</label>
+    <label for="chk-sisterPass">S&#338;ur d&eacute;c&eacute;d&eacute;e (sans enfants)</label>
   </div>
-  <div class="fi" id="box-sisterYear"><label>Ann&eacute;e d&eacute;c&egrave;s s&#338;ur</label><input type="number" id="f-sisterYear" oninput="updField('sisterYear',this.value)"></div>
+  <div class="fi"><label>Ann&eacute;e d&eacute;c&egrave;s s&#338;ur</label><input type="number" id="f-sisterYear" oninput="updField('sisterYear',this.value)"></div>
   <div class="fi"><label>Valeur appt. tante (&euro;)</label><input type="number" id="f-sisterApptVal" oninput="updField('sisterApptVal',this.value)"></div>
   <div class="fi"><label>Loyer potentiel/mois (&euro;)</label><input type="number" id="f-sisterApptRent" oninput="updField('sisterApptRent',this.value)"></div>
 
@@ -161,7 +162,6 @@ const MILESTONES = Array.from({length: Y1 - Y0 + 1}, (_, i) => Y0 + i);
 const C={p:'#1baf7a',i:'#2a78d6',h:'#4a3aa7',pen:'#eb6834'};
 const MFR=['janv.',`févr.`,'mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.',`déc.`];
 
-// Prêts BNPP Fortis (Part de 35% sur la Maison de Grimbergen)
 const LD={
   maison1: {P:190013.94, r:429.43/190013.94, M:1026.63, start:[2024,0], n:240, share:0.35},
   maison2: {P:82614.76,  r:186.71/82614.76,  M:446.36,  start:[2024,0], n:240, share:0.35},
@@ -199,10 +199,10 @@ let propOwn=[
 
 let p={
   pRate:5, plciYearly:1800,
-  infl:2, iRate:3,
+  infl:2, iRate:3, wPostRate:7,
   herYear:2035, parRate:2,
-  parCash2023:440000, ehpadCost:4500, parPension:3600, // Capital initial ajusté à 440 000 €
-  sisterPass:false, sisterYear:2040, sisterApptVal:200000, sisterApptRent:1000,
+  parCash2023:440000, ehpadCost:4500, parPension:3600,
+  sisterPass:false, sisterYear:2030, sisterApptVal:200000, sisterApptRent:1000,
   pension:1400, pensionYear:2046
 };
 
@@ -270,19 +270,22 @@ function calc(){
   let plci=0;
   let io=sO().v;
   
-  // Érosion du capital parental global (base 440 000 €)
+  // 1. Érosion du capital parental global jusqu'à l'année de succession parentale
   const deficitAnnuis = (p.ehpadCost - p.parPension) * 12;
   let parCapitalGlobal = p.parCash2023;
   for(let y=2024; y<=p.herYear; y++){
     parCapitalGlobal = Math.max(0, parCapitalGlobal * (1 + p.parRate/100) - deficitAnnuis);
   }
   
-  // Part de 33,33%
-  const partCandiceBrute = parCapitalGlobal * 0.333333;
-  
-  // Taxation sur la part individuelle
+  // 2. Détermination dynamique du ratio d'héritage parental :
+  // Si la sœur est décédée SANS enfants AVANT les parents, la succession se divise en 2 (50%).
+  // Sinon, elle se divise en 3 (33.33%).
+  const ratioHer = (p.sisterPass && p.sisterYear < p.herYear) ? 0.50 : 0.333333;
+  const partCandiceBrute = parCapitalGlobal * ratioHer;
   const taxeEstim = calcTaxeSuccessionLigneDirecte(partCandiceBrute);
-  const parHerNet = Math.max(0, partCandiceBrute - taxeEstim);
+  const parHerNetInitial = Math.max(0, partCandiceBrute - taxeEstim);
+
+  let accumulatedHer = 0;
 
   for(let y=Y0;y<=Y1;y++){
     const n=y-Y0, age=y-BIRTH;
@@ -291,18 +294,25 @@ function calc(){
     
     plci = (plci + p.plciYearly) * (1 + p.pRate/100);
 
-    const nHerS=Math.max(0, y - p.sisterYear);
-    const sisterApptPart = p.sisterPass && y>=p.sisterYear ? (p.sisterApptVal * 0.5) * Math.pow(1+p.iRate/100, nHerS) : 0;
-    const sisterApptLoyer = p.sisterPass && y>=p.sisterYear ? (p.sisterApptRent * 0.5) * inf : 0;
+    // Fructification Wealins du capital d'héritage parental une fois perçu
+    accumulatedHer *= (1 + p.wPostRate/100);
 
-    const herParents = y>=p.herYear ? parHerNet : 0;
-    const herO = herParents + sisterApptPart;
-    const imN=io-passif;
-    const tot=plci + imN + herO;
+    if(y === p.herYear){
+      accumulatedHer += parHerNetInitial;
+    }
+
+    // 3. Réversion de l'appartement de la tante (50% pour Candice sans taxe de succession)
+    const nHerS = Math.max(0, y - p.sisterYear);
+    const sisterApptPart = p.sisterPass && y >= p.sisterYear ? (p.sisterApptVal * 0.5) * Math.pow(1+p.iRate/100, nHerS) : 0;
+    const sisterApptLoyer = p.sisterPass && y >= p.sisterYear ? (p.sisterApptRent * 0.5) * inf : 0;
+
+    const herO = accumulatedHer + sisterApptPart;
+    const imN = io - passif;
+    const tot = plci + imN + herO;
     
-    const lOwn=sisterApptLoyer;
-    const lPen=y>=p.pensionYear ? p.pension * inf : 0;
-    const lT=lOwn+lPen;
+    const lOwn = sisterApptLoyer;
+    const lPen = y >= p.pensionYear ? p.pension * inf : 0;
+    const lT = lOwn + lPen;
     
     rows.push({year:y,age,
       plci:Math.round(plci),io:Math.round(imN),ip:Math.round(herO),tot:Math.round(tot),
@@ -507,7 +517,7 @@ function updCheck(k,v){
 }
 
 function initControls(){
-  ['pRate','parRate','infl','iRate'].forEach(k=>{
+  ['pRate','parRate','wPostRate','infl','iRate'].forEach(k=>{
     document.getElementById('sl-'+k).value=p[k];
     document.getElementById('lbl-'+k).textContent=p[k]+'%';
   });
