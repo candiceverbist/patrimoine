@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vision Patrimoniale · Candice</title>
+<style>
+:root{--bg:#f9f9f8;--sf:#fff;--sf2:#f5f4f0;--tx:#0b0b0b;--tx2:#52514e;--tx3:#898781;--bd:rgba(11,11,11,0.10);--bd2:rgba(11,11,11,0.18);--acc:#d62a78;--acc-bg:#fbe6f1;--acc-tx:#a5185f;--ok:#0f6e56;--ok-bg:#e1f5ee;--r:8px;}
+@media(prefers-color-scheme:dark){:root{--bg:#111110;--sf:#1a1a19;--sf2:#232322;--tx:#f0efec;--tx2:#c3c2b7;--tx3:#898781;--bd:rgba(255,255,255,0.10);--bd2:rgba(255,255,255,0.18);--acc:#e53987;--acc-bg:#400c20;--acc-tx:#eb85b7;--ok:#1d9e75;--ok-bg:#04342c;}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);font-size:13px;min-height:100vh;}
+.app{display:flex;flex-direction:column;min-height:100vh;}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:11px 20px;border-bottom:0.5px solid var(--bd);background:var(--sf);flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:10;}
+.hdr-ey{font-size:10px;color:var(--tx3);letter-spacing:2px;margin-bottom:2px;}
+.hdr-nm{font-size:17px;font-weight:500;}
+.hdr-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.auto-badge{font-size:10px;background:var(--ok-bg);color:var(--ok);padding:3px 8px;border-radius:20px;font-weight:500;}
+.mbtn{padding:5px 12px;border-radius:var(--r);cursor:pointer;font-size:12px;border:0.5px solid var(--bd2);background:transparent;color:var(--tx2);font-family:inherit;}
+.mbtn.active{border-color:var(--acc);background:var(--acc-bg);color:var(--acc-tx);font-weight:500;}
+.body{display:flex;flex:1;}
+.side{width:268px;min-width:268px;border-right:0.5px solid var(--bd);padding:12px;background:var(--sf);overflow-y:auto;max-height:calc(100vh - 52px);position:sticky;top:52px;}
+.main{flex:1;padding:16px;overflow-y:auto;}
+.sh{font-size:9px;letter-spacing:1.5px;color:var(--tx3);font-weight:600;border-bottom:0.5px solid var(--bd);padding-bottom:4px;margin-bottom:9px;margin-top:14px;}
+.sh:first-child{margin-top:2px;}
+.sr{margin-bottom:11px;}
+.sl-lbl{display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px;color:var(--tx2);}
+.sl-v{font-weight:600;font-size:12px;}
+input[type=range]{width:100%;cursor:pointer;}
+.fi{margin-bottom:7px;}
+.fi label{display:block;font-size:11px;color:var(--tx3);margin-bottom:2px;}
+.fi input[type=number]{width:100%;background:var(--sf2);border:0.5px solid var(--bd2);border-radius:var(--r);color:var(--tx);padding:4px 8px;font-size:12px;font-family:inherit;outline:none;}
+.fi input[type=number]:focus{border-color:var(--acc);}
+.prop-item{border:0.5px solid var(--bd);border-radius:8px;padding:8px 9px;margin-bottom:7px;background:var(--sf2);}
+.pi-r1{display:flex;gap:5px;align-items:center;margin-bottom:5px;}
+.pi-name{flex:1;background:transparent;border:none;border-bottom:0.5px solid var(--bd2);color:var(--tx);font-size:12px;font-weight:500;padding:1px 2px;font-family:inherit;outline:none;}
+.pi-name:focus{border-bottom-color:var(--acc);}
+.pi-del{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:15px;padding:0 2px;line-height:1;flex-shrink:0;}
+.pi-del:hover{color:#e34948;}
+.pi-g2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:4px;}
+.pi-f{display:flex;flex-direction:column;gap:2px;}
+.pi-f span{font-size:10px;color:var(--tx3);}
+.pi-f input{width:100%;background:var(--sf);border:0.5px solid var(--bd2);border-radius:4px;color:var(--tx);padding:3px 5px;font-size:11px;font-family:inherit;outline:none;}
+.pi-f input:focus{border-color:var(--acc);}
+.loan-info{margin-top:6px;padding:5px 7px;background:var(--ok-bg);border-radius:5px;font-size:10px;color:var(--ok);line-height:1.7;}
+.loan-info strong{font-weight:600;}
+.prop-add{background:none;border:0.5px dashed var(--bd2);border-radius:var(--r);width:100%;padding:4px;font-size:11px;color:var(--tx3);cursor:pointer;margin-top:4px;font-family:inherit;}
+.prop-add:hover{border-color:var(--acc);color:var(--acc);}
+.prop-tot{font-size:11px;color:var(--tx2);margin-top:6px;padding-top:5px;border-top:0.5px solid var(--bd);}
+.prop-tot strong{color:var(--tx);}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+.kpi-card{background:var(--sf);border:0.5px solid var(--bd);border-radius:12px;padding:11px 13px;}
+.kpi-lbl{font-size:11px;color:var(--tx3);margin-bottom:4px;}
+.kpi-val{font-size:20px;font-weight:500;margin-bottom:2px;line-height:1.1;}
+.kpi-sub{font-size:11px;color:var(--tx2);}
+.tabs{display:flex;gap:6px;margin-bottom:11px;flex-wrap:wrap;}
+.tbtn{padding:5px 13px;border-radius:var(--r);cursor:pointer;font-size:12px;border:0.5px solid var(--bd2);background:transparent;color:var(--tx2);font-family:inherit;}
+.tbtn.active{border-color:var(--acc);background:var(--acc-bg);color:var(--acc-tx);font-weight:500;}
+.chart-box{background:var(--sf);border:0.5px solid var(--bd);border-radius:12px;padding:12px 4px 6px;margin-bottom:12px;}
+.chart-container{position:relative;width:100%;height:300px;min-height:250px;}
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:0 10px 8px;font-size:11px;color:var(--tx2);}
+.li{display:flex;align-items:center;gap:5px;}
+.lsq{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+.tbox{background:var(--sf);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;}
+.tbox-h{padding:9px 14px;border-bottom:0.5px solid var(--bd);font-size:9px;letter-spacing:2px;color:var(--tx3);font-weight:600;}
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;white-space:nowrap;}
+th{padding:7px 11px;text-align:right;color:var(--tx3);font-weight:400;font-size:10px;border-bottom:0.5px solid var(--bd);}
+th:first-child{text-align:left;}
+td{padding:7px 11px;text-align:right;border-top:0.5px solid var(--bd);}
+td:first-child{text-align:left;}
+tr.hl td{background:var(--acc-bg);}
+tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
+.check-row{display:flex;align-items:center;gap:8px;margin-top:6px;margin-bottom:8px;font-size:11px;color:var(--tx2);}
+.check-row input[type=checkbox]{cursor:pointer;}
+@media(max-width:700px){
+  .body{flex-direction:column;}
+  .side{width:100%;max-height:none;position:relative;top:0;border-right:none;border-bottom:0.5px solid var(--bd);}
+  .kpi-grid{grid-template-columns:1fr;}
+  .main{padding:12px;}
+  .chart-container{height:250px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+<div class="hdr">
+  <div><div class="hdr-ey">VISION PATRIMONIALE</div><div class="hdr-nm">Candice &middot; 2026&ndash;2050</div></div>
+  <div class="hdr-r">
+    <span class="auto-badge" id="date-badge">&#8987; &hellip;</span>
+    <div style="display:flex;gap:6px;">
+      <button class="mbtn" id="btn-nom" onclick="setMode('nom')">Nominal</button>
+      <button class="mbtn active" id="btn-real" onclick="setMode('real')">R&eacute;el (&euro; 2026)</button>
+    </div>
+  </div>
+</div>
+<div class="body">
+<div class="side">
+  <div class="sh">TAUX & RENDEMENTS</div>
+  <div class="sr"><div class="sl-lbl"><span>PLCI / Epargne pension</span><span class="sl-v" id="lbl-pRate" style="color:#1baf7a"></span></div><input type="range" min="1" max="10" step="0.5" id="sl-pRate" oninput="updSlider('pRate',this.value)" style="accent-color:#1baf7a"></div>
+  <div class="sr"><div class="sl-lbl"><span>Placements parents</span><span class="sl-v" id="lbl-parRate" style="color:#4a3aa7"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-parRate" oninput="updSlider('parRate',this.value)" style="accent-color:#4a3aa7"></div>
+  <div class="sr"><div class="sl-lbl"><span>Inflation</span><span class="sl-v" id="lbl-infl" style="color:var(--tx3)"></span></div><input type="range" min="0" max="6" step="0.1" id="sl-infl" oninput="updSlider('infl',this.value)"></div>
+  <div class="sr"><div class="sl-lbl"><span>Appr&eacute;ciation immo</span><span class="sl-v" id="lbl-iRate" style="color:#2a78d6"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-iRate" oninput="updSlider('iRate',this.value)" style="accent-color:#2a78d6"></div>
+  
+  <div class="sh">MES BIENS IMMOBILIERS</div>
+  <div id="props-own"></div>
+  
+  <div class="sh">EPARGNE RETRAITE (PLCI)</div>
+  <div class="fi"><label>PLCI Actuelle 2026 (&euro;)</label><input type="number" id="f-plciBase" oninput="updField('plciBase',this.value)"></div>
+  <div class="fi"><label>Versement annuel (&euro;/an)</label><input type="number" id="f-plciYearly" oninput="updField('plciYearly',this.value)"></div>
+  
+  <div class="sh">H&Eacute;RITAGE PARENTAL</div>
+  <div class="fi"><label>Ann&eacute;e h&eacute;ritage</label><input type="number" id="f-herYear" oninput="updField('herYear',this.value)"></div>
+  <div class="fi"><label>Capital parents 2023 (&euro;)</label><input type="number" id="f-parCash2023" oninput="updField('parCash2023',this.value)"></div>
+  <div class="fi"><label>Co&ucirc;t mensuel EHPAD (&euro;)</label><input type="number" id="f-ehpadCost" oninput="updField('ehpadCost',this.value)"></div>
+  <div class="fi"><label>Pension parents/mois (&euro;)</label><input type="number" id="f-parPension" oninput="updField('parPension',this.value)"></div>
+  
+  <div class="sh">SUCCESSION S&#338;UR (FIDEICOMMIS)</div>
+  <div class="check-row">
+    <input type="checkbox" id="chk-sisterPass" onchange="updCheck('sisterPass',this.checked)">
+    <label for="chk-sisterPass">S&#338;ur d&eacute;c&eacute;d&eacute;e (part 50%)</label>
+  </div>
+  <div class="fi"><label>Valeur appt. tante (&euro;)</label><input type="number" id="f-sisterApptVal" oninput="updField('sisterApptVal',this.value)"></div>
+  <div class="fi"><label>Loyer potentiel/mois (&euro;)</label><input type="number" id="f-sisterApptRent" oninput="updField('sisterApptRent',this.value)"></div>
+
+  <div class="sh">PENSION L&Eacute;GALE</div>
+  <div class="fi"><label>Montant mensuel estim&eacute; (&euro;)</label><input type="number" id="f-pension" oninput="updField('pension',this.value)"></div>
+  <div class="fi"><label>&Agrave; partir de (ann&eacute;e)</label><input type="number" id="f-pensionYear" oninput="updField('pensionYear',this.value)"></div>
+</div>
+
+<div class="main">
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-lbl">2030 &mdash; 52 ans</div><div class="kpi-val" id="kpi-2030" style="color:var(--tx2)">—</div><div class="kpi-sub" id="kpi-2030-l">—</div></div>
+    <div class="kpi-card"><div class="kpi-lbl">2034 &mdash; 56 ans</div><div class="kpi-val" id="kpi-2034" style="color:var(--tx2)">—</div><div class="kpi-sub" id="kpi-2034-l">—</div></div>
+    <div class="kpi-card" style="border-color:var(--acc)"><div class="kpi-lbl">&#127937; Pension &mdash; 67 ans</div><div class="kpi-val" id="kpi-2045" style="color:var(--acc)">—</div><div class="kpi-sub" id="kpi-2045-l">—</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tbtn active" id="tab-total" onclick="setTab('total')">Patrimoine total</button>
+    <button class="tbtn" id="tab-breakdown" onclick="setTab('breakdown')">Par actif</button>
+    <button class="tbtn" id="tab-income" onclick="setTab('income')">Revenus mensuels</button>
+  </div>
+  <div class="chart-box">
+    <div class="legend" id="chart-legend"></div>
+    <div class="chart-container"><canvas id="mainChart"></canvas></div>
+  </div>
+  <div class="tbox">
+    <div class="tbox-h">PATRIMOINE ANNUEL (2026&ndash;2050)</div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th>Ann&eacute;e</th><th>&Acirc;ge</th>
+        <th style="color:#1baf7a">PLCI</th>
+        <th style="color:#2a78d6">Immo net</th>
+        <th style="color:#4a3aa7">H&eacute;ritage+</th>
+        <th>Total</th><th>Revenus/mois</th>
+      </tr></thead>
+      <tbody id="tbl-body"></tbody>
+    </table></div>
+  </div>
+</div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const BIRTH=1978, Y0=2026, Y1=2050;
+const MILESTONES = Array.from({length: Y1 - Y0 + 1}, (_, i) => Y0 + i);
+const C={p:'#1baf7a',i:'#2a78d6',h:'#4a3aa7',pen:'#eb6834'};
+const MFR=['janv.',`févr.`,'mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.',`déc.`];
+
+// PrêtsBNP Fortis (Part de 35% sur la Maison de Grimbergen)
+const LD={
+  maison1: {P:190013.94, r:429.43/190013.94, M:1026.63, start:[2024,0], n:240, share:0.35},
+  maison2: {P:82614.76,  r:186.71/82614.76,  M:446.36,  start:[2024,0], n:240, share:0.35},
+};
+
+function lbal(def, asOf){
+  const [sy,sm]=def.start;
+  const k=(asOf.getFullYear()-sy)*12+(asOf.getMonth()-sm)+1;
+  if(k<=0) return def.P;
+  if(k>=def.n) return 0;
+  const pw=Math.pow(1+def.r,k);
+  return Math.max(0, def.P*pw - def.M*(pw-1)/def.r);
+}
+
+function lmont(def, y){
+  const [sy,sm]=def.start;
+  const kA=(y-sy)*12+(0-sm)+1;
+  const kZ=kA+11;
+  if(kZ<=0||kA>def.n) return 0;
+  const months=Math.min(def.n,kZ)-Math.max(0,kA)+1;
+  return def.M*Math.max(0,Math.min(12,months))/12;
+}
+
+function getLoanEndYears(){
+  const years = new Set();
+  Object.values(LD).forEach(def => {
+    years.add(def.start[0] + Math.floor((def.start[1] + def.n - 1) / 12));
+  });
+  return Array.from(years);
+}
+
+let propOwn=[
+  {name:'Maison Grimbergen (35%)', loyer:0, valeur:120750, loans:['maison1','maison2'], share:0.35},
+];
+
+let p={
+  pRate:5, plciBase:15000, plciYearly:1800,
+  infl:2, iRate:3,
+  herYear:2035, parRate:2,
+  parCash2023:480000, ehpadCost:4500, parPension:3600,
+  sisterPass:false, sisterApptVal:200000, sisterApptRent:1000,
+  pension:1650, pensionYear:2045
+};
+
+let mode='real', tab='total', chartInst=null, rows=[];
+
+function fmt(v,c){
+  if(v===null||v===undefined||isNaN(v)) return '—';
+  if(c!==false){
+    const a=Math.abs(v);
+    if(a>=1e6) return `${+(v/1e6).toFixed(2)}M €`;
+    if(a>=1000) return `${Math.round(v/1000)}k €`;
+  }
+  return v.toLocaleString('fr-BE',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function sO(){return{l:propOwn.reduce((s,x)=>s+x.loyer,0),v:propOwn.reduce((s,x)=>s+x.valeur,0)};}
+
+function pPassif(prop, y){
+  if(prop.loans&&prop.loans.length){
+    const sh=prop.share||1;
+    const d=new Date(y,0,1);
+    return prop.loans.reduce((s,k)=>LD[k]?s+lbal(LD[k],d)*sh:s, 0);
+  }
+  return 0;
+}
+
+function pMens(prop, y){
+  if(prop.loans&&prop.loans.length){
+    const sh=prop.share||1;
+    return prop.loans.reduce((s,k)=>LD[k]?s+lmont(LD[k],y)*sh:s, 0);
+  }
+  return 0;
+}
+
+function renderProps(){
+  const el=document.getElementById('props-own');
+  const now=new Date();
+  let html=propOwn.map((prop,i)=>{
+    const nm=`<input class="pi-name" value="${esc(prop.name)}" oninput="updProp(${i},'name',this.value)">`;
+    const vF=`<div class="pi-f"><span>Valeur estimée 35% (€)</span><input type="number" value="${prop.valeur}" oninput="updProp(${i},'valeur',this.value)"></div>`;
+    const sh=prop.share||1;
+    const solde=Math.round(prop.loans.reduce((s,k)=>LD[k]?s+lbal(LD[k],now)*sh:s,0));
+    const mens=Math.round(prop.loans.reduce((s,k)=>LD[k]?s+LD[k].M*sh:s,0));
+    const extra=`<div class="loan-info">&#128179; Part mensualité : <strong>${mens}€</strong>/mois &nbsp;·&nbsp; Solde 35% : <strong>${fmt(solde,false)}</strong></div>`;
+    return `<div class="prop-item"><div class="pi-r1">${nm}</div><div class="pi-g1">${vF}</div>${extra}</div>`;
+  }).join('');
+  el.innerHTML=html;
+}
+
+function updProp(i,k,v){
+  propOwn[i][k]=k==='name'?v:(parseFloat(v)||0);
+  refresh();
+}
+
+function calc(){
+  rows=[];
+  let plci=p.plciBase;
+  let io=sO().v;
+  
+  // Simulation de la baisse du capital parental du fait de l'EHPAD
+  const deficitAnnuis = (p.ehpadCost - p.parPension) * 12; // 900 * 12 = 10 800 € / an
+  let parCapital = p.parCash2023;
+  for(let y=2024; y<=p.herYear; y++){
+    parCapital = Math.max(0, parCapital * (1 + p.parRate/100) - deficitAnnuis);
+  }
+  
+  // Part de Candice (33.3% de la masse restante)
+  const parHerBrut = parCapital * 0.3333;
+  const taxeEstim = Math.min(parHerBrut * 0.03, 1500) + Math.max(0, parHerBrut - 50000) * 0.09;
+  const parHerNet = Math.max(0, parHerBrut - taxeEstim);
+
+  for(let y=Y0;y<=Y1;y++){
+    const n=y-Y0, age=y-BIRTH;
+    const inf=Math.pow(1+p.infl/100,n), rf=1/inf;
+    const passif=propOwn.reduce((s,prop)=>s+pPassif(prop,y),0);
+    
+    // Fidéicommis de résidu de la sœur (50% de l'appartement sans droits)
+    const nHerS=Math.max(0, y - p.herYear);
+    const sisterApptPart = p.sisterPass && y>=p.herYear ? (p.sisterApptVal * 0.5) * Math.pow(1+p.iRate/100, nHerS) : 0;
+    const sisterApptLoyer = p.sisterPass && y>=p.herYear ? (p.sisterApptRent * 0.5) * inf : 0;
+
+    const herO=y>=p.herYear ? parHerNet + sisterApptPart : 0;
+    const imN=io-passif;
+    const tot=plci + imN + herO;
+    
+    const lOwn=sisterApptLoyer;
+    const lPen=y>=p.pensionYear ? p.pension * inf : 0;
+    const lT=lOwn+lPen;
+    
+    rows.push({year:y,age,
+      plci:Math.round(plci),io:Math.round(imN),ip:Math.round(herO),tot:Math.round(tot),
+      plciR:Math.round(plci*rf),ioR:Math.round(imN*rf),ipR:Math.round(herO*rf),totR:Math.round(tot*rf),
+      lOwn:Math.round(lOwn),lPen:Math.round(lPen),
+      lOwnR:Math.round(lOwn*rf),lPenR:Math.round(lPen*rf),
+      lm:Math.round(lT),lmR:Math.round(lT*rf),
+    });
+
+    plci = (plci + p.plciYearly) * (1 + p.pRate/100);
+    io *= (1 + p.iRate/100);
+  }
+}
+
+function vk(d,k){return mode==='real'?d[k+'R']:d[k];}
+function find(y){return rows.find(r=>r.year===y);}
+const isDark=()=>window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+
+function updateKPIs(){
+  [[2030,'kpi-2030'],[2034,'kpi-2034'],[2045,'kpi-2045']].forEach(([y,id])=>{
+    const d=find(y);
+    document.getElementById(id).textContent=fmt(vk(d,'tot'));
+    document.getElementById(id+'-l').textContent='Revenus : '+fmt(vk(d,'lm'),false)+'/mois';
+  });
+}
+
+function updateTable(){
+  const tb=document.getElementById('tbl-body'); tb.innerHTML='';
+  const loanEndYears = getLoanEndYears();
+
+  MILESTONES.forEach(y=>{
+    const d=find(y); if(!d) return;
+    const isPensionYear = (y === p.pensionYear);
+    const isLoanEnd = loanEndYears.includes(y);
+    const isHerYear = (y === p.herYear);
+
+    let mk = '';
+    if (isPensionYear) mk += ' &#127937;';
+    if (isLoanEnd) mk += ' &#128477;';
+    if (isHerYear) mk += ' &#128091;';
+
+    const tr=document.createElement('tr'); if(isPensionYear) tr.className='hl';
+    tr.innerHTML=`<td style="font-weight:${isPensionYear||isLoanEnd||isHerYear?600:400}">${y}${mk}</td>`
+      +`<td style="color:var(--tx3)">${d.age}</td>`
+      +`<td style="color:#1baf7a">${fmt(vk(d,'plci'),false)}</td>`
+      +`<td style="color:#2a78d6">${fmt(vk(d,'io'),false)}</td>`
+      +`<td style="color:#4a3aa7">${fmt(vk(d,'ip'),false)}</td>`
+      +`<td style="font-weight:600">${fmt(vk(d,'tot'),false)}</td>`
+      +`<td style="color:var(--tx2)">${fmt(vk(d,'lm'),false)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderChart(){
+  if(typeof Chart==='undefined'){
+    setTimeout(renderChart, 300);
+    return;
+  }
+  try{ if(chartInst){chartInst.destroy();chartInst=null;} }catch(e){}
+  const dark=isDark();
+  const grid=dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+  const tick='#898781', ttBg=dark?'#2c2c2a':'#fff', ttTx=dark?'#f0efec':'#0b0b0b';
+  const ttBd=dark?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.1)';
+  const yrs=rows.map(r=>String(r.year));
+
+  const refDefs=[
+    [p.pensionYear,C.p,'Pension'],
+    [2043,'#bbb','Maison libre'],
+  ];
+  const refPlugin={id:'refs',afterDraw(chart){
+    const ctx=chart.ctx, xs=chart.scales.x, ys=chart.scales.y;
+    if(!xs||!ys) return;
+    refDefs.forEach(([yr,col,lbl])=>{
+      const idx=rows.findIndex(r=>r.year===yr);
+      if(idx<0) return;
+      const x=xs.getPixelForIndex(idx);
+      ctx.save();
+      ctx.strokeStyle=col+(col==='#bbb'?'77':'88');
+      ctx.setLineDash(col==='#bbb'?[3,4]:[5,4]);
+      ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(x,ys.top); ctx.lineTo(x,ys.bottom); ctx.stroke();
+      if(col!=='#bbb'){
+        ctx.fillStyle=col; ctx.font='9px system-ui';
+        ctx.textAlign='center'; ctx.fillText(lbl,x,ys.top+9);
+      }
+      ctx.restore();
+    });
+  }};
+
+  const baseOpts={
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:ttBg,titleColor:ttTx,bodyColor:ttTx,
+        borderColor:ttBd,borderWidth:1,padding:9,
+        callbacks:{
+          title:items=>`${items[0].label} · ${find(parseInt(items[0].label))?.age} ans`,
+          label:item=>`  ${item.dataset.label} : ${fmt(item.raw,false)}`
+        }
+      }
+    },
+    scales:{
+      x:{grid:{color:grid},ticks:{color:tick,maxTicksLimit:13,font:{size:10}}},
+      y:{grid:{color:grid},ticks:{color:tick,font:{size:10},callback:v=>fmt(v)}}
+    }
+  };
+
+  let cfg;
+  const leg=document.getElementById('chart-legend');
+
+  if(tab==='total'){
+    leg.innerHTML='<div class="li"><div class="lsq" style="background:#d62a78"></div>Total patrimoine</div>';
+    cfg={
+      type:'line',
+      data:{labels:yrs,datasets:[{
+        label:'Total patrimoine',
+        data:rows.map(r=>vk(r,'tot')),
+        borderColor:'#d62a78',backgroundColor:'#d62a7822',
+        borderWidth:2,pointRadius:0,fill:true,tension:0.35
+      }]},
+      options:baseOpts,
+      plugins:[refPlugin]
+    };
+
+  } else if(tab==='breakdown'){
+    leg.innerHTML='<div class="li"><div class="lsq" style="background:#4a3aa7"></div>Héritage &amp; Sœur</div>'
+      +'<div class="li"><div class="lsq" style="background:#2a78d6"></div>Immobilier (35%)</div>'
+      +'<div class="li"><div class="lsq" style="background:#1baf7a"></div>PLCI</div>';
+    cfg={
+      type:'line',
+      data:{labels:yrs,datasets:[
+        {label:'Héritage & Sœur',data:rows.map(r=>vk(r,'ip')),borderColor:C.h,backgroundColor:C.h+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
+        {label:'Immobilier (35%)',data:rows.map(r=>vk(r,'io')),borderColor:C.i,backgroundColor:C.i+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
+        {label:'PLCI',data:rows.map(r=>vk(r,'plci')),borderColor:C.p,backgroundColor:C.p+'38',borderWidth:1.5,pointRadius:0,fill:true,stack:'s',tension:0.35},
+      ]},
+      options:baseOpts,
+      plugins:[refPlugin]
+    };
+
+  } else {
+    const evR=rows.filter((_,i)=>i%2===0);
+    leg.innerHTML='<div class="li"><div class="lsq" style="background:#2a78d6"></div>Loyers (appt tante)</div>'
+      +'<div class="li"><div class="lsq" style="background:#eb6834"></div>Pension légale</div>';
+    const iOpts={
+      ...baseOpts,
+      scales:{
+        x:{...baseOpts.scales.x,stacked:true},
+        y:{...baseOpts.scales.y,stacked:true,
+       ticks:{...baseOpts.scales.y.ticks,callback:v=>fmt(v,false)}},
+      },
+      plugins:{
+        ...baseOpts.plugins,
+        tooltip:{
+          ...baseOpts.plugins.tooltip,
+          callbacks:{
+            title:items=>{const d=find(parseInt(items[0].label));return`${items[0].label} · ${d?.age} ans`;},
+            label:item=>`  ${item.dataset.label} : ${fmt(item.raw,false)}/mois`,
+            footer:items=>`  Total : ${fmt(items.reduce((s,i)=>s+(i.raw||0),0),false)}/mois`
+          }
+        }
+      }
+    };
+    cfg={
+      type:'bar',
+      data:{labels:evR.map(r=>String(r.year)),datasets:[
+        {label:'Loyers tante',data:evR.map(r=>mode==='real'?r.lOwnR:r.lOwn),backgroundColor:C.i+'cc',stack:'inc'},
+        {label:'Pension légale',data:evR.map(r=>mode==='real'?r.lPenR:r.lPen),backgroundColor:C.pen+'cc',stack:'inc'},
+      ]},
+      options:iOpts
+    };
+  }
+
+  try{
+    chartInst=new Chart(document.getElementById('mainChart'), cfg);
+  }catch(err){}
+}
+
+function refresh(){calc();updateKPIs();updateTable();renderChart();}
+function setMode(m){
+  mode=m;
+  ['nom','real'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('active',x===m));
+  refresh();
+}
+function setTab(t){
+  tab=t;
+  ['total','breakdown','income'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===t));
+  renderChart();updateKPIs();updateTable();
+}
+function updSlider(k,v){
+  p[k]=parseFloat(v);
+  document.getElementById('lbl-'+k).textContent=parseFloat(v).toFixed(1).replace('.0','')+'%';
+  refresh();
+}
+function updField(k,v){p[k]=parseFloat(v)||0;refresh();}
+function updCheck(k,v){p[k]=v;refresh();}
+
+function initControls(){
+  ['pRate','parRate','infl','iRate'].forEach(k=>{
+    document.getElementById('sl-'+k).value=p[k];
+    document.getElementById('lbl-'+k).textContent=p[k]+'%';
+  });
+  ['plciBase','plciYearly','herYear','parCash2023','ehpadCost','parPension','sisterApptVal','sisterApptRent','pension','pensionYear'].forEach(k=>{
+    const el=document.getElementById('f-'+k); if(el) el.value=p[k];
+  });
+  document.getElementById('chk-sisterPass').checked=p.sisterPass;
+  const now=new Date();
+  document.getElementById('date-badge').textContent=
+    '⧗ Soldes au '+MFR[now.getMonth()]+' '+now.getFullYear();
+  
+  document.getElementById('btn-nom').classList.remove('active');
+  document.getElementById('btn-real').classList.add('active');
+
+  renderProps();
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  initControls();
+  refresh();
+});
+</script>
+</body>
+</html>
