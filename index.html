@@ -34,19 +34,13 @@ input[type=range]{width:100%;cursor:pointer;}
 .pi-r1{display:flex;gap:5px;align-items:center;margin-bottom:5px;}
 .pi-name{flex:1;background:transparent;border:none;border-bottom:0.5px solid var(--bd2);color:var(--tx);font-size:12px;font-weight:500;padding:1px 2px;font-family:inherit;outline:none;}
 .pi-name:focus{border-bottom-color:var(--acc);}
-.pi-del{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:15px;padding:0 2px;line-height:1;flex-shrink:0;}
-.pi-del:hover{color:#e34948;}
-.pi-g2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:4px;}
+.pi-g1{margin-top:4px;}
 .pi-f{display:flex;flex-direction:column;gap:2px;}
 .pi-f span{font-size:10px;color:var(--tx3);}
 .pi-f input{width:100%;background:var(--sf);border:0.5px solid var(--bd2);border-radius:4px;color:var(--tx);padding:3px 5px;font-size:11px;font-family:inherit;outline:none;}
 .pi-f input:focus{border-color:var(--acc);}
 .loan-info{margin-top:6px;padding:5px 7px;background:var(--ok-bg);border-radius:5px;font-size:10px;color:var(--ok);line-height:1.7;}
 .loan-info strong{font-weight:600;}
-.prop-add{background:none;border:0.5px dashed var(--bd2);border-radius:var(--r);width:100%;padding:4px;font-size:11px;color:var(--tx3);cursor:pointer;margin-top:4px;font-family:inherit;}
-.prop-add:hover{border-color:var(--acc);color:var(--acc);}
-.prop-tot{font-size:11px;color:var(--tx2);margin-top:6px;padding-top:5px;border-top:0.5px solid var(--bd);}
-.prop-tot strong{color:var(--tx);}
 .kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px;}
 .kpi-card{background:var(--sf);border:0.5px solid var(--bd);border-radius:12px;padding:11px 13px;}
 .kpi-lbl{font-size:11px;color:var(--tx3);margin-bottom:4px;}
@@ -97,7 +91,7 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
 <div class="body">
 <div class="side">
   <div class="sh">TAUX & RENDEMENTS</div>
-  <div class="sr"><div class="sl-lbl"><span>PLCI / Epargne pension</span><span class="sl-v" id="lbl-pRate" style="color:#1baf7a"></span></div><input type="range" min="1" max="10" step="0.5" id="sl-pRate" oninput="updSlider('pRate',this.value)" style="accent-color:#1baf7a"></div>
+  <div class="sr"><div class="sl-lbl"><span>PLCI</span><span class="sl-v" id="lbl-pRate" style="color:#1baf7a"></span></div><input type="range" min="1" max="10" step="0.5" id="sl-pRate" oninput="updSlider('pRate',this.value)" style="accent-color:#1baf7a"></div>
   <div class="sr"><div class="sl-lbl"><span>Placements parents</span><span class="sl-v" id="lbl-parRate" style="color:#4a3aa7"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-parRate" oninput="updSlider('parRate',this.value)" style="accent-color:#4a3aa7"></div>
   <div class="sr"><div class="sl-lbl"><span>Inflation</span><span class="sl-v" id="lbl-infl" style="color:var(--tx3)"></span></div><input type="range" min="0" max="6" step="0.1" id="sl-infl" oninput="updSlider('infl',this.value)"></div>
   <div class="sr"><div class="sl-lbl"><span>Appr&eacute;ciation immo</span><span class="sl-v" id="lbl-iRate" style="color:#2a78d6"></span></div><input type="range" min="0" max="8" step="0.5" id="sl-iRate" oninput="updSlider('iRate',this.value)" style="accent-color:#2a78d6"></div>
@@ -106,8 +100,7 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
   <div id="props-own"></div>
   
   <div class="sh">EPARGNE RETRAITE (PLCI)</div>
-  <div class="fi"><label>PLCI Actuelle 2026 (&euro;)</label><input type="number" id="f-plciBase" oninput="updField('plciBase',this.value)"></div>
-  <div class="fi"><label>Versement annuel (&euro;/an)</label><input type="number" id="f-plciYearly" oninput="updField('plciYearly',this.value)"></div>
+  <div class="fi"><label>Versement annuel (&euro;/an d&egrave;s 2026)</label><input type="number" id="f-plciYearly" oninput="updField('plciYearly',this.value)"></div>
   
   <div class="sh">H&Eacute;RITAGE PARENTAL</div>
   <div class="fi"><label>Ann&eacute;e h&eacute;ritage</label><input type="number" id="f-herYear" oninput="updField('herYear',this.value)"></div>
@@ -132,7 +125,7 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
   <div class="kpi-grid">
     <div class="kpi-card"><div class="kpi-lbl">2030 &mdash; 52 ans</div><div class="kpi-val" id="kpi-2030" style="color:var(--tx2)">—</div><div class="kpi-sub" id="kpi-2030-l">—</div></div>
     <div class="kpi-card"><div class="kpi-lbl">2034 &mdash; 56 ans</div><div class="kpi-val" id="kpi-2034" style="color:var(--tx2)">—</div><div class="kpi-sub" id="kpi-2034-l">—</div></div>
-    <div class="kpi-card" style="border-color:var(--acc)"><div class="kpi-lbl">&#127937; Pension &mdash; 67 ans</div><div class="kpi-val" id="kpi-2045" style="color:var(--acc)">—</div><div class="kpi-sub" id="kpi-2045-l">—</div></div>
+    <div class="kpi-card" style="border-color:var(--acc)"><div class="kpi-lbl">&#127937; Pension &mdash; 68 ans</div><div class="kpi-val" id="kpi-2046" style="color:var(--acc)">—</div><div class="kpi-sub" id="kpi-2046-l">—</div></div>
   </div>
   <div class="tabs">
     <button class="tbtn active" id="tab-total" onclick="setTab('total')">Patrimoine total</button>
@@ -167,7 +160,7 @@ const MILESTONES = Array.from({length: Y1 - Y0 + 1}, (_, i) => Y0 + i);
 const C={p:'#1baf7a',i:'#2a78d6',h:'#4a3aa7',pen:'#eb6834'};
 const MFR=['janv.',`févr.`,'mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.',`déc.`];
 
-// PrêtsBNP Fortis (Part de 35% sur la Maison de Grimbergen)
+// Prêts BNPP Fortis (Part de 35% sur la Maison de Grimbergen)
 const LD={
   maison1: {P:190013.94, r:429.43/190013.94, M:1026.63, start:[2024,0], n:240, share:0.35},
   maison2: {P:82614.76,  r:186.71/82614.76,  M:446.36,  start:[2024,0], n:240, share:0.35},
@@ -204,12 +197,12 @@ let propOwn=[
 ];
 
 let p={
-  pRate:5, plciBase:15000, plciYearly:1800,
+  pRate:5, plciYearly:1800,
   infl:2, iRate:3,
   herYear:2035, parRate:2,
   parCash2023:480000, ehpadCost:4500, parPension:3600,
   sisterPass:false, sisterApptVal:200000, sisterApptRent:1000,
-  pension:1650, pensionYear:2045
+  pension:1400, pensionYear:2046
 };
 
 let mode='real', tab='total', chartInst=null, rows=[];
@@ -266,17 +259,16 @@ function updProp(i,k,v){
 
 function calc(){
   rows=[];
-  let plci=p.plciBase;
+  let plci=0; // PLCI commence à 0 en 2026 et s'accumule au fil des ans
   let io=sO().v;
   
-  // Simulation de la baisse du capital parental du fait de l'EHPAD
+  // Capitalisation / érosion du capital parental
   const deficitAnnuis = (p.ehpadCost - p.parPension) * 12; // 900 * 12 = 10 800 € / an
   let parCapital = p.parCash2023;
   for(let y=2024; y<=p.herYear; y++){
     parCapital = Math.max(0, parCapital * (1 + p.parRate/100) - deficitAnnuis);
   }
   
-  // Part de Candice (33.3% de la masse restante)
   const parHerBrut = parCapital * 0.3333;
   const taxeEstim = Math.min(parHerBrut * 0.03, 1500) + Math.max(0, parHerBrut - 50000) * 0.09;
   const parHerNet = Math.max(0, parHerBrut - taxeEstim);
@@ -286,7 +278,9 @@ function calc(){
     const inf=Math.pow(1+p.infl/100,n), rf=1/inf;
     const passif=propOwn.reduce((s,prop)=>s+pPassif(prop,y),0);
     
-    // Fidéicommis de résidu de la sœur (50% de l'appartement sans droits)
+    // Versement annuel PLCI dès 2026
+    plci = (plci + p.plciYearly) * (1 + p.pRate/100);
+
     const nHerS=Math.max(0, y - p.herYear);
     const sisterApptPart = p.sisterPass && y>=p.herYear ? (p.sisterApptVal * 0.5) * Math.pow(1+p.iRate/100, nHerS) : 0;
     const sisterApptLoyer = p.sisterPass && y>=p.herYear ? (p.sisterApptRent * 0.5) * inf : 0;
@@ -307,7 +301,6 @@ function calc(){
       lm:Math.round(lT),lmR:Math.round(lT*rf),
     });
 
-    plci = (plci + p.plciYearly) * (1 + p.pRate/100);
     io *= (1 + p.iRate/100);
   }
 }
@@ -317,10 +310,12 @@ function find(y){return rows.find(r=>r.year===y);}
 const isDark=()=>window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
 
 function updateKPIs(){
-  [[2030,'kpi-2030'],[2034,'kpi-2034'],[2045,'kpi-2045']].forEach(([y,id])=>{
+  [[2030,'kpi-2030'],[2034,'kpi-2034'],[2046,'kpi-2046']].forEach(([y,id])=>{
     const d=find(y);
-    document.getElementById(id).textContent=fmt(vk(d,'tot'));
-    document.getElementById(id+'-l').textContent='Revenus : '+fmt(vk(d,'lm'),false)+'/mois';
+    if(d){
+      document.getElementById(id).textContent=fmt(vk(d,'tot'));
+      document.getElementById(id+'-l').textContent='Revenus : '+fmt(vk(d,'lm'),false)+'/mois';
+    }
   });
 }
 
@@ -501,7 +496,7 @@ function initControls(){
     document.getElementById('sl-'+k).value=p[k];
     document.getElementById('lbl-'+k).textContent=p[k]+'%';
   });
-  ['plciBase','plciYearly','herYear','parCash2023','ehpadCost','parPension','sisterApptVal','sisterApptRent','pension','pensionYear'].forEach(k=>{
+  ['plciYearly','herYear','parCash2023','ehpadCost','parPension','sisterApptVal','sisterApptRent','pension','pensionYear'].forEach(k=>{
     const el=document.getElementById('f-'+k); if(el) el.value=p[k];
   });
   document.getElementById('chk-sisterPass').checked=p.sisterPass;
