@@ -198,11 +198,11 @@ let propOwn=[
 ];
 
 let p={
-  pRate:2.5, plciYearly:1800,
+  pRate:5, plciYearly:1800,
   infl:2, iRate:3, wPostRate:7,
   herYear:2035, parRate:2,
   parCash2023:440000, ehpadCost:4500, parPension:3600,
-  sisterPass:false, sisterYear:2030, sisterApptVal:200000, sisterApptRent:1000,
+  sisterPass:false, sisterYear:2040, sisterApptVal:200000, sisterApptRent:1000, // Année décès sœur réglée par défaut sur 2040
   pension:1400, pensionYear:2046
 };
 
@@ -270,16 +270,14 @@ function calc(){
   let plci=0;
   let io=sO().v;
   
-  // 1. Érosion du capital parental global jusqu'à l'année de succession parentale
+  // Érosion du capital parental jusqu'à p.herYear
   const deficitAnnuis = (p.ehpadCost - p.parPension) * 12;
   let parCapitalGlobal = p.parCash2023;
   for(let y=2024; y<=p.herYear; y++){
     parCapitalGlobal = Math.max(0, parCapitalGlobal * (1 + p.parRate/100) - deficitAnnuis);
   }
   
-  // 2. Détermination dynamique du ratio d'héritage parental :
-  // Si la sœur est décédée SANS enfants AVANT les parents, la succession se divise en 2 (50%).
-  // Sinon, elle se divise en 3 (33.33%).
+  // Règle successorale : Si la sœur meurt avant les parents, la succession se divise en 2 (50%) sinon en 3 (33.33%)
   const ratioHer = (p.sisterPass && p.sisterYear < p.herYear) ? 0.50 : 0.333333;
   const partCandiceBrute = parCapitalGlobal * ratioHer;
   const taxeEstim = calcTaxeSuccessionLigneDirecte(partCandiceBrute);
@@ -294,14 +292,14 @@ function calc(){
     
     plci = (plci + p.plciYearly) * (1 + p.pRate/100);
 
-    // Fructification Wealins du capital d'héritage parental une fois perçu
+    // Capitalisation Wealins du capital d'héritage parental une fois perçu
     accumulatedHer *= (1 + p.wPostRate/100);
 
     if(y === p.herYear){
       accumulatedHer += parHerNetInitial;
     }
 
-    // 3. Réversion de l'appartement de la tante (50% pour Candice sans taxe de succession)
+    // Réversion de l'appartement de la tante (50% pour Candice sans taxe de succession)
     const nHerS = Math.max(0, y - p.sisterYear);
     const sisterApptPart = p.sisterPass && y >= p.sisterYear ? (p.sisterApptVal * 0.5) * Math.pow(1+p.iRate/100, nHerS) : 0;
     const sisterApptLoyer = p.sisterPass && y >= p.sisterYear ? (p.sisterApptRent * 0.5) * inf : 0;
