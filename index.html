@@ -111,8 +111,9 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
   <div class="sh">SUCCESSION S&#338;UR (FIDEICOMMIS)</div>
   <div class="check-row">
     <input type="checkbox" id="chk-sisterPass" onchange="updCheck('sisterPass',this.checked)">
-    <label for="chk-sisterPass">S&#338;ur d&eacute;c&eacute;d&eacute;e (part 50%)</label>
+    <label for="chk-sisterPass">Activer la succession s&#338;ur</label>
   </div>
+  <div class="fi" id="box-sisterYear"><label>Ann&eacute;e d&eacute;c&egrave;s s&#338;ur</label><input type="number" id="f-sisterYear" oninput="updField('sisterYear',this.value)"></div>
   <div class="fi"><label>Valeur appt. tante (&euro;)</label><input type="number" id="f-sisterApptVal" oninput="updField('sisterApptVal',this.value)"></div>
   <div class="fi"><label>Loyer potentiel/mois (&euro;)</label><input type="number" id="f-sisterApptRent" oninput="updField('sisterApptRent',this.value)"></div>
 
@@ -200,8 +201,8 @@ let p={
   pRate:5, plciYearly:1800,
   infl:2, iRate:3,
   herYear:2035, parRate:2,
-  parCash2023:480000, ehpadCost:4500, parPension:3600,
-  sisterPass:false, sisterApptVal:200000, sisterApptRent:1000,
+  parCash2023:440000, ehpadCost:4500, parPension:3600, // Capital initial ajusté à 440 000 €
+  sisterPass:false, sisterYear:2040, sisterApptVal:200000, sisterApptRent:1000,
   pension:1400, pensionYear:2046
 };
 
@@ -257,35 +258,45 @@ function updProp(i,k,v){
   refresh();
 }
 
+function calcTaxeSuccessionLigneDirecte(partBrute){
+  if(partBrute <= 0) return 0;
+  if(partBrute <= 50000) return partBrute * 0.03;
+  if(partBrute <= 250000) return 1500 + (partBrute - 50000) * 0.09;
+  return 19500 + (partBrute - 250000) * 0.27;
+}
+
 function calc(){
   rows=[];
-  let plci=0; // PLCI commence à 0 en 2026 et s'accumule au fil des ans
+  let plci=0;
   let io=sO().v;
   
-  // Capitalisation / érosion du capital parental
-  const deficitAnnuis = (p.ehpadCost - p.parPension) * 12; // 900 * 12 = 10 800 € / an
-  let parCapital = p.parCash2023;
+  // Érosion du capital parental global (base 440 000 €)
+  const deficitAnnuis = (p.ehpadCost - p.parPension) * 12;
+  let parCapitalGlobal = p.parCash2023;
   for(let y=2024; y<=p.herYear; y++){
-    parCapital = Math.max(0, parCapital * (1 + p.parRate/100) - deficitAnnuis);
+    parCapitalGlobal = Math.max(0, parCapitalGlobal * (1 + p.parRate/100) - deficitAnnuis);
   }
   
-  const parHerBrut = parCapital * 0.3333;
-  const taxeEstim = Math.min(parHerBrut * 0.03, 1500) + Math.max(0, parHerBrut - 50000) * 0.09;
-  const parHerNet = Math.max(0, parHerBrut - taxeEstim);
+  // Part de 33,33%
+  const partCandiceBrute = parCapitalGlobal * 0.333333;
+  
+  // Taxation sur la part individuelle
+  const taxeEstim = calcTaxeSuccessionLigneDirecte(partCandiceBrute);
+  const parHerNet = Math.max(0, partCandiceBrute - taxeEstim);
 
   for(let y=Y0;y<=Y1;y++){
     const n=y-Y0, age=y-BIRTH;
     const inf=Math.pow(1+p.infl/100,n), rf=1/inf;
     const passif=propOwn.reduce((s,prop)=>s+pPassif(prop,y),0);
     
-    // Versement annuel PLCI dès 2026
     plci = (plci + p.plciYearly) * (1 + p.pRate/100);
 
-    const nHerS=Math.max(0, y - p.herYear);
-    const sisterApptPart = p.sisterPass && y>=p.herYear ? (p.sisterApptVal * 0.5) * Math.pow(1+p.iRate/100, nHerS) : 0;
-    const sisterApptLoyer = p.sisterPass && y>=p.herYear ? (p.sisterApptRent * 0.5) * inf : 0;
+    const nHerS=Math.max(0, y - p.sisterYear);
+    const sisterApptPart = p.sisterPass && y>=p.sisterYear ? (p.sisterApptVal * 0.5) * Math.pow(1+p.iRate/100, nHerS) : 0;
+    const sisterApptLoyer = p.sisterPass && y>=p.sisterYear ? (p.sisterApptRent * 0.5) * inf : 0;
 
-    const herO=y>=p.herYear ? parHerNet + sisterApptPart : 0;
+    const herParents = y>=p.herYear ? parHerNet : 0;
+    const herO = herParents + sisterApptPart;
     const imN=io-passif;
     const tot=plci + imN + herO;
     
@@ -328,14 +339,15 @@ function updateTable(){
     const isPensionYear = (y === p.pensionYear);
     const isLoanEnd = loanEndYears.includes(y);
     const isHerYear = (y === p.herYear);
+    const isSisterYear = (p.sisterPass && y === p.sisterYear);
 
     let mk = '';
     if (isPensionYear) mk += ' &#127937;';
     if (isLoanEnd) mk += ' &#128477;';
-    if (isHerYear) mk += ' &#128091;';
+    if (isHerYear || isSisterYear) mk += ' &#128091;';
 
     const tr=document.createElement('tr'); if(isPensionYear) tr.className='hl';
-    tr.innerHTML=`<td style="font-weight:${isPensionYear||isLoanEnd||isHerYear?600:400}">${y}${mk}</td>`
+    tr.innerHTML=`<td style="font-weight:${isPensionYear||isLoanEnd||isHerYear||isSisterYear?600:400}">${y}${mk}</td>`
       +`<td style="color:var(--tx3)">${d.age}</td>`
       +`<td style="color:#1baf7a">${fmt(vk(d,'plci'),false)}</td>`
       +`<td style="color:#2a78d6">${fmt(vk(d,'io'),false)}</td>`
@@ -489,14 +501,17 @@ function updSlider(k,v){
   refresh();
 }
 function updField(k,v){p[k]=parseFloat(v)||0;refresh();}
-function updCheck(k,v){p[k]=v;refresh();}
+function updCheck(k,v){
+  p[k]=v;
+  refresh();
+}
 
 function initControls(){
   ['pRate','parRate','infl','iRate'].forEach(k=>{
     document.getElementById('sl-'+k).value=p[k];
     document.getElementById('lbl-'+k).textContent=p[k]+'%';
   });
-  ['plciYearly','herYear','parCash2023','ehpadCost','parPension','sisterApptVal','sisterApptRent','pension','pensionYear'].forEach(k=>{
+  ['plciYearly','herYear','parCash2023','ehpadCost','parPension','sisterYear','sisterApptVal','sisterApptRent','pension','pensionYear'].forEach(k=>{
     const el=document.getElementById('f-'+k); if(el) el.value=p[k];
   });
   document.getElementById('chk-sisterPass').checked=p.sisterPass;
