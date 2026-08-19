@@ -6,7 +6,7 @@
 <title>Vision Patrimoniale · Candice</title>
 <style>
 :root{--bg:#f9f9f8;--sf:#fff;--sf2:#f5f4f0;--tx:#0b0b0b;--tx2:#52514e;--tx3:#898781;--bd:rgba(11,11,11,0.10);--bd2:rgba(11,11,11,0.18);--acc:#d62a78;--acc-bg:#fbe6f1;--acc-tx:#a5185f;--ok:#0f6e56;--ok-bg:#e1f5ee;--r:8px;}
-@media(prefers-color-scheme:dark){:root{--bg:#111110;--sf:#1a1a19;--sf2:#232322;--tx:#f0efec;--tx2:#c3c2b7;--tx3:#898781;--bd:rgba(255,255,255,0.10);--bd2:rgba(255,255,255,0.18);--acc:#e53987;--acc-bg:#400c20;--acc-tx:#eb85b7;--ok:#1d9e75;--ok-bg:#04342c;}}
+@media(prefers-color-scheme:dark){:root{--bg:#111110;--sf:#1a1a19;--sf2:#232322;--tx:#f0efec;--tx2:#c3c2b7;--tx3:#898781;--bd:rgba(255,255,255,0.10);--bd2:rgba(255,255,255,0.18);--acc:#e53987;--acc-bg:#400c20;--acc-tx:#eb85b7;--ok:#0f6e56;--ok-bg:#04342c;}}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);font-size:13px;min-height:100vh;}
 .app{display:flex;flex-direction:column;min-height:100vh;}
@@ -101,7 +101,7 @@ tr.hl td:first-child{color:var(--acc-tx);font-weight:600;}
   <div id="props-own"></div>
   
   <div class="sh">EPARGNE RETRAITE (PLCI)</div>
-  <div class="fi"><label>Versement annuel (&euro;/an d&egrave;s 2026)</label><input type="number" id="f-plciYearly" oninput="updField('plciYearly',this.value)"></div>
+  <div class="fi"><label>Cotisation annuelle épargne (&euro;/an jusqu'en 2034)</label><input type="number" id="f-plciYearly" oninput="updField('plciYearly',this.value)"></div>
   
   <div class="sh">H&Eacute;RITAGE PARENTAL</div>
   <div class="fi"><label>Ann&eacute;e h&eacute;ritage</label><input type="number" id="f-herYear" oninput="updField('herYear',this.value)"></div>
@@ -198,11 +198,11 @@ let propOwn=[
 ];
 
 let p={
-  pRate:5, plciYearly:1800,
+  pRate:2.5, plciYearly:1200, // Cotisation nette épargne ajustée (hors Revenu Garanti)
   infl:2, iRate:3, wPostRate:7,
   herYear:2035, parRate:2,
   parCash2023:440000, ehpadCost:4500, parPension:3600,
-  sisterPass:false, sisterYear:2040, sisterApptVal:200000, sisterApptRent:1000, // Année décès sœur réglée par défaut sur 2040
+  sisterPass:false, sisterYear:2040, sisterApptVal:200000, sisterApptRent:1000,
   pension:1400, pensionYear:2046
 };
 
@@ -270,14 +270,12 @@ function calc(){
   let plci=0;
   let io=sO().v;
   
-  // Érosion du capital parental jusqu'à p.herYear
   const deficitAnnuis = (p.ehpadCost - p.parPension) * 12;
   let parCapitalGlobal = p.parCash2023;
   for(let y=2024; y<=p.herYear; y++){
     parCapitalGlobal = Math.max(0, parCapitalGlobal * (1 + p.parRate/100) - deficitAnnuis);
   }
   
-  // Règle successorale : Si la sœur meurt avant les parents, la succession se divise en 2 (50%) sinon en 3 (33.33%)
   const ratioHer = (p.sisterPass && p.sisterYear < p.herYear) ? 0.50 : 0.333333;
   const partCandiceBrute = parCapitalGlobal * ratioHer;
   const taxeEstim = calcTaxeSuccessionLigneDirecte(partCandiceBrute);
@@ -290,16 +288,16 @@ function calc(){
     const inf=Math.pow(1+p.infl/100,n), rf=1/inf;
     const passif=propOwn.reduce((s,prop)=>s+pPassif(prop,y),0);
     
-    plci = (plci + p.plciYearly) * (1 + p.pRate/100);
+    // Cotisation versée uniquement jusqu'en 2034 (hors assurance pure)
+    const plciContrib = (y < 2035) ? p.plciYearly : 0;
+    plci = (plci + plciContrib) * (1 + p.pRate/100);
 
-    // Capitalisation Wealins du capital d'héritage parental une fois perçu
     accumulatedHer *= (1 + p.wPostRate/100);
 
     if(y === p.herYear){
       accumulatedHer += parHerNetInitial;
     }
 
-    // Réversion de l'appartement de la tante (50% pour Candice sans taxe de succession)
     const nHerS = Math.max(0, y - p.sisterYear);
     const sisterApptPart = p.sisterPass && y >= p.sisterYear ? (p.sisterApptVal * 0.5) * Math.pow(1+p.iRate/100, nHerS) : 0;
     const sisterApptLoyer = p.sisterPass && y >= p.sisterYear ? (p.sisterApptRent * 0.5) * inf : 0;
